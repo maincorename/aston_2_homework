@@ -3,15 +3,19 @@ package services;
 import dao.UserHibernate;
 import dao.UserRepository;
 import entity.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 
 public class UserService {
     private final UserRepository userRepository = new UserHibernate();
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     public Long createUser(String name, String email, Integer age) {
         User user = new User(name, email, age);
         userRepository.userCreate(user);
+        logger.info("Создан пользователь с ID: {}", user.getId());
         return user.getId();
     }
 
@@ -28,9 +32,11 @@ public class UserService {
         }
 
         userRepository.userUpdate(user);
+        logger.info("Обновлён пользователь с ID: {}", user.getId());
     }
 
     public void deleteUser (Long id) {
         userRepository.userDelete(id);
+        logger.info("Пользователь с ID: {} удалён", id);
     }
 }
