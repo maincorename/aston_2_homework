@@ -38,6 +38,14 @@ public class User {
         this.age = age;
     }
 
+    public Long getId() {
+        return id;
+    }
+
+    public LocalDateTime getCreated_at() {
+        return created_at;
+    }
+
     public String getName() {
         return name;
     }
