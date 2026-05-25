@@ -13,7 +13,7 @@ public class HibernateUtil {
         try {
             // Загрузка конфигурации из hibernate.cfg
             return new Configuration().configure().buildSessionFactory();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             logger.error("Произошла ошибка при создании SessionFactory. ", e);
 
             throw new ExceptionInInitializerError(e);
