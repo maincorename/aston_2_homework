@@ -62,4 +62,24 @@ public class UserHibernateTest extends BaseDaoTest {
 
         Assertions.assertFalse(userHibernate.select(user.getId()).isPresent());
     }
+
+    @Test
+    void create_ShouldThrowException_WhenEmailAlreadyExists() {
+        User user1 = new User("Василий", "test@example.com", 30);
+        userHibernate.create(user1);
+
+        User user2 = new User("Никита", "test@example.com", 25);
+        Assertions.assertThrows(RuntimeException.class, () -> userHibernate.create(user2));
+    }
+
+    @Test
+    void update_ShouldThrowException_WhenEmailAlreadyExists() {
+        User user1 = new User("Василий", "test@example.com", 30);
+        User user2 = new User("Никита", "example@example.com", 25);
+        userHibernate.create(user1);
+        userHibernate.create(user2);
+
+        user1.setEmail("example@example.com");
+        Assertions.assertThrows(RuntimeException.class, () -> userHibernate.update(user1));
+    }
 }
