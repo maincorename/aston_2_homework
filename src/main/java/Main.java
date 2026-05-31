@@ -61,7 +61,7 @@ private static void createUser() {
     System.out.print("Введите возраст: ");
     int age = Integer.parseInt(scanner.nextLine());
 
-    Long userId = userService.createUser(name, email, age);
+    Long userId = userService.create(name, email, age);
     System.out.println("Создан пользователь с ID: " + userId);
 }
 
@@ -69,7 +69,7 @@ private static void findUser() {
     System.out.print("Введите ID: ");
     Long id = Long.parseLong(scanner.nextLine());
 
-    userService.getUser(id).ifPresentOrElse(
+    userService.get(id).ifPresentOrElse(
             user -> System.out.println(user),
             () -> System.out.println("Пользователь не найден")
     );
@@ -79,7 +79,7 @@ private static void updateUser() {
     System.out.print("Введите ID: ");
     Long id = Long.parseLong(scanner.nextLine());
 
-    Optional<User> optionalUser = userService.getUser(id);
+    Optional<User> optionalUser = userService.get(id);
 
     if (optionalUser.isPresent()) {
         User user = optionalUser.get();
@@ -93,7 +93,7 @@ private static void updateUser() {
         System.out.println("Текущий возраст: " + user.getAge());
         String ageStr = scanner.nextLine();
 
-        userService.updateUser(user, name, email, ageStr);
+        userService.update(user, name, email, ageStr);
     } else {
         System.out.println("Пользователь не найден");
     }
@@ -104,7 +104,7 @@ private static void deleteUser() {
     Long id = Long.parseLong(scanner.nextLine());
 
     try {
-        userService.deleteUser(id);
+        userService.delete(id);
         System.out.println("Пользователь удалён");
     } catch (RuntimeException e) {
         System.err.println(e.getMessage());

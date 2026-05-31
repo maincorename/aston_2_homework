@@ -10,7 +10,7 @@ import java.util.Optional;
 
 public class UserHibernate implements UserRepository {
     @Override
-    public void userCreate(User user) {
+    public void create(User user) {
         Transaction transaction = null;
 
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
@@ -24,7 +24,7 @@ public class UserHibernate implements UserRepository {
     }
 
     @Override
-    public Optional<User> userSelect(Long id) {
+    public Optional<User> select(Long id) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             return Optional.ofNullable(session.get(User.class, id));
         } catch (Exception e) {
@@ -33,7 +33,7 @@ public class UserHibernate implements UserRepository {
     }
 
     @Override
-    public void userUpdate(User user) {
+    public void update(User user) {
         Transaction transaction = null;
 
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
@@ -47,7 +47,7 @@ public class UserHibernate implements UserRepository {
     }
 
     @Override
-    public User userDelete(Long id) {
+    public User delete(Long id) {
         Transaction transaction = null;
 
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {

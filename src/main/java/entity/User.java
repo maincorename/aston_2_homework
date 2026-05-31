@@ -2,15 +2,20 @@ package entity;
 
 import jakarta.persistence.*;
 import jakarta.persistence.Table;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
+@Getter @Setter
+@ToString
+@NoArgsConstructor
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Setter(AccessLevel.NONE)
     private Long id;
 
     @Column(nullable = false, length = 50)
@@ -23,6 +28,7 @@ public class User {
     private Integer age;
 
     @Column(name = "created_at", nullable = false, updatable = false)
+    @Setter(AccessLevel.NONE)
     private LocalDateTime created_at;
 
     @PrePersist
@@ -30,54 +36,9 @@ public class User {
         this.created_at = LocalDateTime.now();
     }
 
-    public User() {}
-
     public User(String name, String email, Integer age) {
         this.name = name;
         this.email = email;
         this.age = age;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public LocalDateTime getCreated_at() {
-        return created_at;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public Integer getAge() {
-        return age;
-    }
-
-    public void setAge(Integer age) {
-        this.age = age;
-    }
-
-    @Override
-    public String toString() {
-        return "User{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", email='" + email + '\'' +
-                ", age=" + age +
-                ", created_at=" + created_at +
-                '}';
     }
 }
