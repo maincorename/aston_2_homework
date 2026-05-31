@@ -3,17 +3,28 @@ package dao;
 import entity.User;
 
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import util.HibernateUtil;
 
 import java.util.Optional;
 
 public class UserHibernate implements UserRepository {
+    private final SessionFactory sessionFactory;
+
+    public UserHibernate(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
+    }
+
+    public UserHibernate() {
+        this.sessionFactory = HibernateUtil.getSessionFactory();
+    }
+
     @Override
     public void create(User user) {
         Transaction transaction = null;
 
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+        try (Session session = sessionFactory.openSession()) {
             transaction = session.beginTransaction();
             session.persist(user);
             transaction.commit();
@@ -25,7 +36,7 @@ public class UserHibernate implements UserRepository {
 
     @Override
     public Optional<User> select(Long id) {
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+        try (Session session = sessionFactory.openSession()) {
             return Optional.ofNullable(session.get(User.class, id));
         } catch (Exception e) {
           throw new RuntimeException("Ошибка при поиске пользователя, ID: " + id, e);
@@ -36,7 +47,7 @@ public class UserHibernate implements UserRepository {
     public void update(User user) {
         Transaction transaction = null;
 
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+        try (Session session = sessionFactory.openSession()) {
             transaction = session.beginTransaction();
             session.merge(user);
             transaction.commit();
@@ -50,7 +61,7 @@ public class UserHibernate implements UserRepository {
     public User delete(Long id) {
         Transaction transaction = null;
 
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+        try (Session session = sessionFactory.openSession()) {
             transaction = session.beginTransaction();
             User user = session.get(User.class, id);
 
