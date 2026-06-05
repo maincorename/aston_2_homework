@@ -4,6 +4,7 @@ import dao.UserRepository;
 import entity.User;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -100,7 +101,6 @@ public class UserServiceTest {
             String expectedName, String expectedEmail, int expectedAge) {
 
         User user = new User(oldName, oldEmail, oldAge);
-        setPrivateField(user, "id", 10L);
 
         userService.update(user, newName, newEmail, newAgeStr);
 
@@ -115,5 +115,13 @@ public class UserServiceTest {
     void delete_ShouldCallRepositoryDelete(Long id) {
         userService.delete(id);
         verify(userRepository).delete(id);
+    }
+
+    @Test
+    void create_ShouldThrowExceptionFromRepository() {
+        doThrow(new RuntimeException("Ошибка при создании пользователя"))
+                .when(userRepository).create(any(User.class));
+
+        Assertions.assertThrows(RuntimeException.class, () -> userService.create("Василий", "test@example.com", 30));
     }
 }
