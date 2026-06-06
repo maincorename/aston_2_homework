@@ -1,6 +1,5 @@
 package services;
 
-import dao.UserHibernate;
 import dao.UserRepository;
 import entity.User;
 import org.slf4j.Logger;
@@ -9,8 +8,12 @@ import org.slf4j.LoggerFactory;
 import java.util.Optional;
 
 public class UserService {
-    private final UserRepository userRepository = new UserHibernate();
+    private final UserRepository userRepository;
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     public Long create (String name, String email, Integer age) {
         User user = new User(name, email, age);
