@@ -1,7 +1,7 @@
 package tests;
 
-import dao.UserHibernate;
-import entity.User;
+import application.dao.UserHibernate;
+import application.entity.User;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 import org.junit.jupiter.api.AfterAll;

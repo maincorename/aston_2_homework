@@ -1,6 +1,6 @@
-package dao;
+package application.dao;
 
-import entity.User;
+import application.entity.User;
 
 import java.util.Optional;
 
