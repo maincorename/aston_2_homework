@@ -3,6 +3,8 @@ package application.services;
 import application.dao.UserSpringRepository;
 import application.dto.UserDto;
 import application.entity.User;
+import application.kafka.UserEventProducer;
+import application.mappers.UserMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,29 +16,33 @@ import java.util.stream.Collectors;
 @Service
 public class UserService {
     private final UserSpringRepository userRepository;
+    private final UserEventProducer userEventProducer;
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+    private static final String USER_NOT_FOUND_MSG = "Пользователь с ID %d не найден";
 
     @Autowired
-    public UserService (UserSpringRepository userRepository) {
+    public UserService (UserSpringRepository userRepository, UserEventProducer userEventProducer) {
         this.userRepository = userRepository;
+        this.userEventProducer = userEventProducer;
     }
 
     public UserDto create (String name, String email, Integer age) {
         User user = new User(name, email, age);
         user = userRepository.save(user);
+        userEventProducer.sendUserCreated(user.getEmail());
         logger.info("Создан пользователь с ID: {}", user.getId());
-        return toDto(user);
+        return UserMapper.toDto(user);
     }
 
     public UserDto getById (Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Пользователь с ID " + id + " не найден"));
-        return toDto(user);
+                .orElseThrow(() -> new RuntimeException(String.format(USER_NOT_FOUND_MSG, id)));
+        return UserMapper.toDto(user);
     }
 
     public UserDto update (Long id, String name, String email, Integer age) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Пользователь с ID " + id + " не найден"));
+                .orElseThrow(() -> new RuntimeException(String.format(USER_NOT_FOUND_MSG, id)));
 
         if (name != null && !name.isBlank()) user.setName(name);
         if (email != null && !email.isBlank()) user.setEmail(email);
@@ -45,30 +51,18 @@ public class UserService {
         user = userRepository.save(user);
         logger.info("Обновлён пользователь с ID: {}", user.getId());
 
-        return toDto(user);
+        return UserMapper.toDto(user);
     }
 
     public void delete (Long id) {
-        if (!userRepository.existsById(id)) {
-            throw new RuntimeException("Пользователь с ID " + id + " не найден");
-        }
+        User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException(String.format(USER_NOT_FOUND_MSG, id)));
 
         userRepository.deleteById(id);
+        userEventProducer.sendUserDeleted(user.getEmail());
         logger.info("Пользователь с ID: {} удалён", id);
     }
 
     public List<UserDto> getAll () {
-        return userRepository.findAll().stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
-    }
-
-    private UserDto toDto (User user) {
-        UserDto dto = new UserDto();
-        dto.setId(user.getId());
-        dto.setName(user.getName());
-        dto.setEmail(user.getEmail());
-        dto.setAge(user.getAge());
-        return dto;
+        return UserMapper.toDtoList(userRepository.findAll());
     }
 }

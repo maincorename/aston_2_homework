@@ -2,6 +2,7 @@ package tests;
 
 import application.Main;
 import application.dto.UserDto;
+import application.kafka.UserEventProducer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -34,6 +35,9 @@ class UserControllerTest {
     @MockitoBean
     private UserService userService;
 
+    @MockitoBean
+    private UserEventProducer userEventProducer;
+
     private ObjectMapper objectMapper;
 
     @BeforeEach
@@ -43,11 +47,7 @@ class UserControllerTest {
 
     @Test
     void getUserById_ShouldReturn200() throws Exception {
-        UserDto dto = new UserDto();
-        dto.setId(1L);
-        dto.setName("Василий");
-        dto.setEmail("test@example.com");
-        dto.setAge(30);
+        UserDto dto = new UserDto(1L, "Василий", "test@example.com", 30);
 
         Mockito.when(userService.getById(1L)).thenReturn(dto);
 
@@ -70,11 +70,7 @@ class UserControllerTest {
 
     @Test
     void createUser_ShouldReturn201() throws Exception {
-        UserDto dto = new UserDto();
-        dto.setId(1L);
-        dto.setName("Василий");
-        dto.setEmail("test@example.com");
-        dto.setAge(30);
+        UserDto dto = new UserDto(1L, "Василий", "test@example.com", 30);
 
         Mockito.when(userService.create("Василий", "test@example.com", 30)).thenReturn(dto);
 
@@ -103,16 +99,9 @@ class UserControllerTest {
 
     @Test
     void updateUser_ShouldReturn200() throws Exception {
-        UserDto requestDto = new UserDto();
-        requestDto.setName("Екатерина");
-        requestDto.setEmail("newtest@example.com");
-        requestDto.setAge(25);
+        UserDto requestDto = new UserDto(1L,"Екатерина", "newtest@example.com", 25);
 
-        UserDto responseDto = new UserDto();
-        responseDto.setId(1L);
-        responseDto.setName("Екатерина");
-        responseDto.setEmail("newtest@example.com");
-        responseDto.setAge(25);
+        UserDto responseDto = new UserDto(1L,"Екатерина", "newtest@example.com", 25);
 
         Mockito.when(userService.update(eq(1L), eq("Екатерина"), eq("newtest@example.com"), eq(25)))
                 .thenReturn(responseDto);
@@ -128,10 +117,7 @@ class UserControllerTest {
 
     @Test
     void updateUser_ShouldReturn404WhenNotFound() throws Exception {
-        UserDto requestDto = new UserDto();
-        requestDto.setName("Екатерина");
-        requestDto.setEmail("newtest@example.com");
-        requestDto.setAge(25);
+        UserDto requestDto = new UserDto(1L,"Екатерина", "newtest@example.com", 25);
 
         Mockito.when(userService.update(anyLong(), anyString(), anyString(), any()))
                 .thenThrow(new RuntimeException("Пользователь с ID 99 не найден"));
@@ -161,24 +147,16 @@ class UserControllerTest {
 
     @Test
     void getAllUsers_ShouldReturn200() throws Exception {
-        UserDto dto1 = new UserDto();
-        dto1.setId(1L);
-        dto1.setName("Василий");
-        dto1.setEmail("test@example.com");
-        dto1.setAge(30);
+        UserDto dto1 = new UserDto(1L, "Василий", "test@example.com", 30);
 
-        UserDto dto2 = new UserDto();
-        dto2.setId(2L);
-        dto2.setName("Мария");
-        dto2.setEmail("maria@example.com");
-        dto2.setAge(25);
+        UserDto dto2 = new UserDto(2L,"Екатерина", "newtest@example.com", 25);
 
         Mockito.when(userService.getAll()).thenReturn(List.of(dto1, dto2));
 
         mockMvc.perform(get("/api/users"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("Василий"))
-                .andExpect(jsonPath("$[1].name").value("Мария"))
+                .andExpect(jsonPath("$[1].name").value("Екатерина"))
                 .andExpect(jsonPath("$.length()").value(2));
     }
 }

@@ -3,6 +3,7 @@ package tests;
 import application.dao.UserSpringRepository;
 import application.dto.UserDto;
 import application.entity.User;
+import application.kafka.UserEventProducer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,11 +30,14 @@ public class UserServiceTest {
     @Mock
     private UserSpringRepository userRepository;
 
+    @Mock
+    private UserEventProducer userEventProducer;
+
     private UserService userService;
 
     @BeforeEach
     void setUp() {
-        userService = new UserService(userRepository);
+        userService = new UserService(userRepository, userEventProducer);
 
         //когда создаётся пользователь устанавливаем id и время создания
         lenient().doAnswer(invocation -> {
@@ -46,6 +50,9 @@ public class UserServiceTest {
             }
             return user;
         }).when(userRepository).save(any(User.class));
+
+        lenient().doNothing().when(userEventProducer).sendUserCreated(anyString());
+        lenient().doNothing().when(userEventProducer).sendUserDeleted(anyString());
     }
 
     //имитируем установку значения приватного поля рефлексией
@@ -67,10 +74,10 @@ public class UserServiceTest {
         UserDto result = userService.create(name, email, age);
 
         Assertions.assertNotNull(result);
-        Assertions.assertEquals(1L, result.getId());
-        Assertions.assertEquals(name, result.getName());
-        Assertions.assertEquals(email, result.getEmail());
-        Assertions.assertEquals(age, result.getAge());
+        Assertions.assertEquals(1L, result.id());
+        Assertions.assertEquals(name, result.name());
+        Assertions.assertEquals(email, result.email());
+        Assertions.assertEquals(age, result.age());
 
         ArgumentCaptor<User> userArgumentCaptor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(userArgumentCaptor.capture());
@@ -93,10 +100,10 @@ public class UserServiceTest {
 
         UserDto user = userService.getById(id);
 
-        Assertions.assertEquals(expectedName, user.getName());
-        Assertions.assertEquals(expectedEmail, user.getEmail());
-        Assertions.assertEquals(expectedAge, user.getAge());
-        Assertions.assertEquals(id, user.getId());
+        Assertions.assertEquals(expectedName, user.name());
+        Assertions.assertEquals(expectedEmail, user.email());
+        Assertions.assertEquals(expectedAge, user.age());
+        Assertions.assertEquals(id, user.id());
     }
 
     @ParameterizedTest
@@ -119,10 +126,10 @@ public class UserServiceTest {
         UserDto result = userService.update(userId, newName, newEmail, newAge);
 
         Assertions.assertNotNull(result);
-        Assertions.assertEquals(userId, result.getId());
-        Assertions.assertEquals(expectedName, result.getName());
-        Assertions.assertEquals(expectedEmail, result.getEmail());
-        Assertions.assertEquals(expectedAge, result.getAge());
+        Assertions.assertEquals(userId, result.id());
+        Assertions.assertEquals(expectedName, result.name());
+        Assertions.assertEquals(expectedEmail, result.email());
+        Assertions.assertEquals(expectedAge, result.age());
         verify(userRepository).findById(userId);
         verify(userRepository).save(existingUser);
     }
@@ -130,7 +137,10 @@ public class UserServiceTest {
     @ParameterizedTest
     @ValueSource(longs = {1L, })
     void delete_ShouldCallRepositoryDelete(Long id) {
-        when(userRepository.existsById(id)).thenReturn(true);
+        User user = new User("Василий", "test@example.com", 30);
+        setPrivateField(user, "id", id);
+
+        when(userRepository.findById(id)).thenReturn(Optional.of(user));
         userService.delete(id);
         verify(userRepository).deleteById(id);
     }
@@ -154,8 +164,8 @@ public class UserServiceTest {
         List<UserDto> result = userService.getAll();
 
         Assertions.assertEquals(2, result.size());
-        Assertions.assertEquals("Василий", result.get(0).getName());
-        Assertions.assertEquals("Мария", result.get(1).getName());
+        Assertions.assertEquals("Василий", result.get(0).name());
+        Assertions.assertEquals("Мария", result.get(1).name());
         verify(userRepository).findAll();
     }
 
@@ -170,7 +180,7 @@ public class UserServiceTest {
 
     @Test
     void delete_ShouldThrowException_WhenNotFound() {
-        when(userRepository.existsById(99L)).thenReturn(false);
+        lenient().when(userRepository.existsById(99L)).thenReturn(false);
 
         RuntimeException exception = Assertions.assertThrows(RuntimeException.class,
                 () -> userService.delete(99L));
