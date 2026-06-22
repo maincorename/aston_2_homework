@@ -20,6 +20,9 @@ public class UserEventProducer {
 
     private final KafkaTemplate<String, UserEventDto> kafkaTemplate;
 
+    private static final String OPERATION_MSG_CREATED = "CREATED";
+    private static final String OPERATION_MSG_DELETED = "DELETED";
+
     @Value("${app.kafka.topic}")
     private String topic;
 
@@ -33,13 +36,13 @@ public class UserEventProducer {
     }
 
     public void sendUserCreated(String email) {
-        UserEventDto event = new UserEventDto("CREATED", email);
+        UserEventDto event = new UserEventDto(OPERATION_MSG_CREATED, email);
         kafkaTemplate.send(topic, event);
         logger.info("Sent CREATED event for email: {}", email);
     }
 
     public void sendUserDeleted(String email) {
-        UserEventDto event = new UserEventDto("DELETED", email);
+        UserEventDto event = new UserEventDto(OPERATION_MSG_DELETED, email);
         kafkaTemplate.send(topic, event);
         logger.info("Sent DELETED event for email: {}", email);
     }
