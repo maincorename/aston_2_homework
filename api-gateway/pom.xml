@@ -10,6 +10,8 @@
     </parent>
 
     <artifactId>api-gateway</artifactId>
+    <packaging>jar</packaging>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
@@ -34,5 +36,12 @@
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 </project>
